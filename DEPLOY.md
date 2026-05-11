@@ -8,10 +8,11 @@
 
 ## 一、准备代码（GitHub）
 
-1. 在 GitHub 新建一个仓库（例如 `project-x-dex-site`）。
-2. 把本目录里的站点文件全部 push 上去（至少包含：`index.html`、`kpi.html`、`app.js`、`styles.css`、`data.json`、`kpi-details.json`、`vercel.json` 可选）。
-3. 若仓库**根目录就是本站**：下面「构建输出目录」用 `/`。  
-   若本站只是大仓库里的子文件夹：记下路径，例如 `project-x-dex-site`，下面填这个目录名。
+**当前仓库（已创建并推送）**：<https://github.com/ronliang521/project-x-dex-site>
+
+1. 若你在新电脑继续开发：克隆后在本目录修改，再 `git add` / `git commit` / `git push`。
+2. 仓库根目录已包含：`index.html`、`kpi.html`、`app.js`、`styles.css`、`data.json`、`kpi-details.json`、`vercel.json` 等静态站点文件。
+3. **Cloudflare Pages 构建输出目录**：本仓库根目录即站点，填 **`/`** 或 **`.`**（以 Cloudflare 界面说明为准）。若将来把本站放进别的单仓子目录，再填该子目录名。
 
 ---
 
