@@ -333,7 +333,7 @@
             <a href="https://flux.megaeth.com/overview" target="_blank" rel="noopener">Flux Overview</a>
             一致；各 KPI 奖励、里程碑与分发进度在打开页面时从
             <a href="https://flux.megaeth.com/api/kpi/details" target="_blank" rel="noopener"><code>/api/kpi/details</code></a>
-            自动同步；与同目录 <code>kpi-details.json</code> 并行请求，远程不可用或 CORS 失败时使用镜像数据。
+            部署在 Cloudflare Workers 时经同域 <code>/api/flux-kpi-details</code> 拉取 Flux 实时数据；直连官方 API 受 CORS 限制时回退 <code>kpi-details.json</code>（本地 <code>python -m http.server</code> 无代理属正常）。
           </p>
         </div>
         <a class="btn" href="./index.html">返回主站</a>
@@ -466,6 +466,7 @@
           .replace(/'/g, "&#39;");
 
       async function fetchKpiPayload() {
+        const proxyUrl = new URL("/api/flux-kpi-details", location.origin).href;
         const remoteUrl = "https://flux.megaeth.com/api/kpi/details";
         const localUrl = "./kpi-details.json";
         const pick = (json) =>
@@ -481,9 +482,14 @@
           }
         };
 
-        const [remoteJson, localJson] = await Promise.all([load(remoteUrl), load(localUrl)]);
-        if (remoteJson) return { json: remoteJson, via: remoteUrl };
-        if (localJson) return { json: localJson, via: localUrl };
+        const [proxyJson, remoteJson, localJson] = await Promise.all([
+          load(proxyUrl),
+          load(remoteUrl),
+          load(localUrl),
+        ]);
+        if (proxyJson) return { json: proxyJson, via: "proxy" };
+        if (remoteJson) return { json: remoteJson, via: "remote" };
+        if (localJson) return { json: localJson, via: "local" };
         return null;
       }
 
@@ -522,9 +528,11 @@
         document.getElementById("kpi-pool-sum").textContent = formatWeiMega(poolSum.toString());
         document.getElementById("tranche-done").textContent = `${doneTr} / ${totalTr}`;
         document.getElementById("tranche-sub").textContent =
-          via && via.startsWith("http")
-            ? "优先使用实时接口；并行请求同目录 kpi-details.json 作为回退"
-            : `仅加载到本地镜像：${via || "./kpi-details.json"}（请更新快照或检查网络）`;
+          via === "proxy"
+            ? "Flux 实时数据（本站边缘代理 /api/flux-kpi-details；kpi-details.json 为备用）"
+            : via === "remote"
+            ? "Flux 官方 API 直连（浏览器未拦截 CORS；kpi-details.json 为备用）"
+            : `仅本地镜像 kpi-details.json（本地 python 预览无代理属正常；Cloudflare 部署并推送最新代码后可走实时）`;
 
         const overall = pctFromRatio(distSum, poolSum);
         document.getElementById("overall-pct").textContent = `${overall.toFixed(2)}%`;
@@ -605,7 +613,15 @@
           const foot = document.createElement("p");
           foot.className = "meta";
           foot.style.marginTop = "10px";
-          foot.textContent = `接口 updatedAt 最大：${when} UTC（数据来源：${via}）`;
+          const viaLabel =
+            via === "proxy"
+              ? "同域代理 → flux.megaeth.com/api/kpi/details"
+              : via === "remote"
+              ? "Flux 官方 API（直连）"
+              : via === "local"
+              ? "./kpi-details.json（本地镜像）"
+              : String(via);
+          foot.textContent = `接口 updatedAt 最大：${when} UTC（数据来源：${viaLabel}）`;
           tbody.closest(".card")?.appendChild(foot);
         }
       }

@@ -81,7 +81,7 @@ npx wrangler pages deploy . --project-name=你的项目名
 
 ## 七、其他说明
 
-- `kpi.html` 会请求 Flux 官方接口；若浏览器 CORS 失败，会回退到同目录的 `kpi-details.json`。
+- **`kpi.html` 与 Flux 实时数据**：浏览器无法跨域读取 `flux.megaeth.com` 的 API 时，会回退 `kpi-details.json`。仓库已包含 **`worker.js`**：用 **Wrangler / Cloudflare Workers** 部署后，同域路径 **`/api/flux-kpi-details`** 会在边缘代拉 Flux，页面即可显示实时 KPI（推送 `main` 后若已接 Git 构建，需使用带 `main: worker.js` 的构建配置，或本地执行 `npx wrangler deploy`）。
 - 不要把 API Key、私钥写进仓库或前端。
 
 ---
