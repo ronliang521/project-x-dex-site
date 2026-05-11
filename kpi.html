@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MegaETH Flux KPIs</title>
+    <style>
+      :root {
+        --bg: #0b1020;
+        --card: #121a30;
+        --card-2: #0f172b;
+        --text: #e9edf7;
+        --muted: #9ca7c4;
+        --line: #243054;
+        --accent: #67e8f9;
+        --accent-2: #22d3ee;
+        --ok: #34d399;
+        --warn: #f59e0b;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+        color: var(--text);
+        background: radial-gradient(1200px 700px at 20% 0%, #172243 0%, var(--bg) 45%);
+      }
+
+      .wrap {
+        max-width: 1120px;
+        margin: 0 auto;
+        padding: 28px 16px 42px;
+      }
+
+      .top {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 28px;
+      }
+
+      .meta {
+        margin: 8px 0 0;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .btn {
+        display: inline-block;
+        text-decoration: none;
+        color: #09111f;
+        background: linear-gradient(90deg, var(--accent), var(--accent-2));
+        border: 0;
+        border-radius: 10px;
+        padding: 10px 14px;
+        font-weight: 700;
+        font-size: 13px;
+      }
+
+      .card {
+        margin-top: 18px;
+        background: linear-gradient(180deg, var(--card), var(--card-2));
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        overflow: hidden;
+      }
+
+      .summary {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 12px;
+        padding: 14px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .tile {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 10px;
+        padding: 12px;
+      }
+
+      .tile .k {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .tile .v {
+        margin-top: 6px;
+        font-size: 20px;
+        font-weight: 700;
+      }
+
+      .tile .tile-note {
+        margin-top: 6px;
+        font-size: 12px;
+        color: var(--muted);
+        line-height: 1.35;
+      }
+
+      .tile .tile-note a {
+        color: #7dd3fc;
+        text-decoration: none;
+      }
+
+      .tile .tile-note a:hover {
+        text-decoration: underline;
+      }
+
+      .table-wrap {
+        overflow: auto;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 1080px;
+      }
+
+      th,
+      td {
+        text-align: left;
+        padding: 14px 12px;
+        border-bottom: 1px solid var(--line);
+        vertical-align: middle;
+      }
+
+      th {
+        color: #cdd5ea;
+        font-size: 13px;
+        letter-spacing: 0.02em;
+        background: rgba(255, 255, 255, 0.02);
+      }
+
+      td {
+        font-size: 14px;
+      }
+
+      .progress {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .bar {
+        width: 130px;
+        height: 8px;
+        border-radius: 999px;
+        background: #1f2a47;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .bar > i {
+        display: block;
+        height: 100%;
+        background: linear-gradient(90deg, var(--warn), var(--ok));
+        border-radius: 999px;
+      }
+
+      .muted {
+        color: var(--muted);
+      }
+
+      .task-cell strong {
+        display: block;
+        font-size: 15px;
+      }
+
+      .task-cell .en {
+        display: block;
+        margin-top: 4px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .source-progress {
+        display: block;
+        margin-top: 6px;
+        color: #93c5fd;
+        font-size: 12px;
+      }
+
+      .tag {
+        display: inline-block;
+        padding: 3px 8px;
+        border-radius: 999px;
+        border: 1px solid rgba(103, 232, 249, 0.3);
+        background: rgba(103, 232, 249, 0.12);
+        color: #a5f3fc;
+        font-size: 12px;
+        margin-bottom: 8px;
+      }
+
+      .detail-main {
+        font-size: 13px;
+        line-height: 1.45;
+        color: #d8e0f4;
+      }
+
+      .detail-sub {
+        margin-top: 5px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .detail-sub a {
+        color: #7dd3fc;
+        text-decoration: none;
+      }
+
+      .detail-sub a:hover {
+        text-decoration: underline;
+      }
+
+      .milestone {
+        margin-top: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.02);
+      }
+
+      .milestone > summary {
+        cursor: pointer;
+        list-style: none;
+        padding: 10px 12px;
+        font-size: 13px;
+        color: #cde8ff;
+        user-select: none;
+      }
+
+      .milestone > summary::-webkit-details-marker {
+        display: none;
+      }
+
+      .milestone > summary::before {
+        content: "▶";
+        font-size: 10px;
+        margin-right: 8px;
+        color: #7dd3fc;
+      }
+
+      .milestone[open] > summary::before {
+        content: "▼";
+      }
+
+      .milestone-list {
+        padding: 0 12px 12px;
+        margin: 0;
+      }
+
+      .milestone-item {
+        margin-top: 8px;
+        padding: 9px 10px;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(255, 255, 255, 0.02);
+      }
+
+      .milestone-item.done {
+        border-color: rgba(52, 211, 153, 0.35);
+      }
+
+      .milestone-item.next {
+        border-color: rgba(245, 158, 11, 0.45);
+      }
+
+      .milestone-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .milestone-name {
+        font-size: 13px;
+        color: #e5ecff;
+      }
+
+      .milestone-reward {
+        font-size: 12px;
+        color: #9ae6b4;
+        white-space: nowrap;
+      }
+
+      .milestone-desc {
+        margin-top: 5px;
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      .status {
+        margin-top: 6px;
+        display: inline-block;
+        font-size: 11px;
+        padding: 2px 7px;
+        border-radius: 999px;
+      }
+
+      .status.done {
+        background: rgba(52, 211, 153, 0.2);
+        color: #6ee7b7;
+      }
+
+      .status.next {
+        background: rgba(245, 158, 11, 0.2);
+        color: #fbbf24;
+      }
+
+      .status.pending {
+        background: rgba(148, 163, 184, 0.16);
+        color: #cbd5e1;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="wrap">
+      <section class="top">
+        <div>
+          <h1>MegaETH Flux KPI 表格</h1>
+          <p class="meta">整理字段：任务 / 奖励 / 目前进度（共 13 项）</p>
+          <p class="meta">
+            总可用奖励 <strong>5.25B MEGA</strong> 与
+            <a href="https://flux.megaeth.com/overview" target="_blank" rel="noopener">Flux Overview</a>
+            一致；各 KPI 奖励、里程碑与分发进度在打开页面时从
+            <a href="https://flux.megaeth.com/api/kpi/details" target="_blank" rel="noopener"><code>/api/kpi/details</code></a>
+            自动同步；与同目录 <code>kpi-details.json</code> 并行请求，远程不可用或 CORS 失败时使用镜像数据。
+          </p>
+        </div>
+        <a class="btn" href="./index.html">返回主站</a>
+      </section>
+
+      <section class="card">
+        <div class="summary">
+          <div class="tile">
+            <div class="k">KPI 总数</div>
+            <div class="v" id="kpi-total">13</div>
+          </div>
+          <div class="tile">
+            <div class="k">Flux 总可用奖励</div>
+            <div class="v">5.25B MEGA</div>
+            <div class="tile-note">
+              13 项 KPI 池合计 <span id="kpi-pool-sum">—</span>（接口累加） ·
+              <a href="https://flux.megaeth.com/overview" target="_blank" rel="noopener">Overview</a>
+            </div>
+          </div>
+          <div class="tile">
+            <div class="k">累计完成 Tranche</div>
+            <div class="v" id="tranche-done">—</div>
+            <div class="tile-note" id="tranche-sub">同步中…</div>
+          </div>
+          <div class="tile">
+            <div class="k">KPI 池进度</div>
+            <div class="v" id="overall-pct">—</div>
+            <div class="tile-note" id="overall-sub">已分发 ÷ KPI 池（与官网 ≈2.73% 同口径）</div>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>任务</th>
+                <th>奖励</th>
+                <th>目前进度</th>
+                <th>任务详情一览</th>
+              </tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const FLUX_OVERVIEW_B = 5.25;
+
+      const TASK_ZH = {
+        0: "原生应用市值",
+        1: "区块 Gas 使用率",
+        2: "跨链导入 ETH",
+        3: "USDM 采用度",
+        4: "以太坊运行稳定性",
+        5: "硬分叉升级收益",
+        6: "数据可用性保障",
+        7: "状态验证机制",
+        8: "提议者故障切换",
+        9: "升级退出窗口",
+        10: "区块时间稳定性",
+        11: "最终性时延",
+        12: "链可用性（Uptime）"
+      };
+
+      const DETAIL_ZH = {
+        0: "至少 1 个 MegaETH 原生应用市值达到 2000 万美元",
+        1: "单月达到 25.92 TGas（约 10 MGas/s 均值）",
+        2: "跨链到 MegaETH 的 ETH 累计达到 50,000 枚",
+        3: "USDM 流通供应量达到 8 亿美元",
+        4: "Ethereum uptime 超过 11 年",
+        5: "Glamsterdam 硬分叉完成并带来协议能力提升",
+        6: "完成 DA Bridge + DA Cert Verifier（EigenDA V2）",
+        7: "权限化 fraud proof 系统接入 >= 5 个独立外部参与者",
+        8: "主提议者失效时，安全委员会可完成 proposer 轮换",
+        9: "协议升级生效前保留 >= 7 天延迟窗口",
+        10: "30 天内 90% 以上 miniblock 的时间 <= 12ms",
+        11: "近 30 天内 90% 批次在 120 分钟内完成 L1 最终性",
+        12: "过去 1 个月无超过 5 分钟的非计划停块"
+      };
+
+      const KPI_TYPE_ZH = {
+        "Ecosystem Growth": "生态增长",
+        "Ethereum Decentralization": "以太坊去中心化",
+        "MegaETH Decentralization": "MegaETH 去中心化",
+        "MegaETH Performance": "MegaETH 性能"
+      };
+
+      const WAD = 10n ** 18n;
+
+      const tokensFromWei = (weiStr) => BigInt(weiStr) / WAD;
+
+      const formatMegaTokens = (tokensBig) => {
+        const n = Number(tokensBig);
+        if (!Number.isFinite(n) || n <= 0) return "0 MEGA";
+        if (n >= 1e9) {
+          const b = n / 1e9;
+          const s = Number.isInteger(b) ? String(b) : b.toFixed(3).replace(/\.?0+$/, "");
+          return `${s}B MEGA`;
+        }
+        if (n >= 1e6) {
+          const m = n / 1e6;
+          const s = Number.isInteger(m) ? String(m) : m.toFixed(2).replace(/\.?0+$/, "");
+          return `${s}M MEGA`;
+        }
+        return `${n.toLocaleString("en-US")} MEGA`;
+      };
+
+      const formatWeiMega = (weiStr) => formatMegaTokens(tokensFromWei(weiStr));
+
+      const pctFromRatio = (numBig, denBig) => {
+        if (denBig === 0n) return 0;
+        return Number((numBig * 10000n) / denBig) / 100;
+      };
+
+      const trancheDone = (t) => t.status === 2 || t.isDistributed === true;
+
+      const statusUi = (completed, idx, nextIdx) => {
+        if (completed) return { cls: "done", text: "已达成" };
+        if (idx === nextIdx) return { cls: "next", text: "下一里程碑" };
+        return { cls: "pending", text: "待完成" };
+      };
+
+      const esc = (s) =>
+        String(s ?? "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+
+      async function fetchKpiPayload() {
+        const remoteUrl = "https://flux.megaeth.com/api/kpi/details";
+        const localUrl = "./kpi-details.json";
+        const pick = (json) =>
+          json && json.success && json.data && Array.isArray(json.data.list) ? json : null;
+
+        const load = async (url) => {
+          try {
+            const res = await fetch(url, { cache: "no-store" });
+            if (!res.ok) return null;
+            return pick(await res.json());
+          } catch (_) {
+            return null;
+          }
+        };
+
+        const [remoteJson, localJson] = await Promise.all([load(remoteUrl), load(localUrl)]);
+        if (remoteJson) return { json: remoteJson, via: remoteUrl };
+        if (localJson) return { json: localJson, via: localUrl };
+        return null;
+      }
+
+      function renderError(msg) {
+        const tbody = document.getElementById("tbody");
+        tbody.innerHTML = `<tr><td colspan="4" class="muted">${msg}</td></tr>`;
+        document.getElementById("tranche-done").textContent = "—";
+        document.getElementById("tranche-sub").textContent = "无法加载 KPI 数据";
+        document.getElementById("overall-pct").textContent = "—";
+        document.getElementById("kpi-pool-sum").textContent = "—";
+        document.getElementById("overall-sub").textContent = "";
+      }
+
+      function renderTable(list, via) {
+        const tbody = document.getElementById("tbody");
+        tbody.innerHTML = "";
+
+        const sorted = [...list].sort((a, b) => a.id - b.id);
+        document.getElementById("kpi-total").textContent = String(sorted.length);
+
+        let poolSum = 0n;
+        let distSum = 0n;
+        let doneTr = 0;
+        let totalTr = 0;
+        let maxUpdated = 0;
+
+        for (const k of sorted) {
+          poolSum += BigInt(k.totalRewardAmount);
+          distSum += BigInt(k.distributedRewardAmount);
+          maxUpdated = Math.max(maxUpdated, Number(k.updatedAt || 0));
+          const trs = k.tranches || [];
+          totalTr += trs.length;
+          for (const t of trs) if (trancheDone(t)) doneTr += 1;
+        }
+
+        document.getElementById("kpi-pool-sum").textContent = formatWeiMega(poolSum.toString());
+        document.getElementById("tranche-done").textContent = `${doneTr} / ${totalTr}`;
+        document.getElementById("tranche-sub").textContent =
+          via && via.startsWith("http")
+            ? "优先使用实时接口；并行请求同目录 kpi-details.json 作为回退"
+            : `仅加载到本地镜像：${via || "./kpi-details.json"}（请更新快照或检查网络）`;
+
+        const overall = pctFromRatio(distSum, poolSum);
+        document.getElementById("overall-pct").textContent = `${overall.toFixed(2)}%`;
+        document.getElementById("overall-sub").textContent = `已分发 ${formatWeiMega(
+          distSum.toString()
+        )} ÷ KPI 池 ${formatWeiMega(poolSum.toString())} · Flux 总可用 ${FLUX_OVERVIEW_B}B 见 Overview`;
+
+        for (const k of sorted) {
+          const kpiId = k.id;
+          const task = TASK_ZH[kpiId] || k.title;
+          const en = k.title || "";
+          const track = KPI_TYPE_ZH[k.kpiType] || k.kpiType || "—";
+          const detail = kpiId in DETAIL_ZH ? DETAIL_ZH[kpiId] : k.description || "";
+          const sourceUrl = k.dataSource || "#";
+          const tranches = [...(k.tranches || [])].sort((a, b) => a.trancheId - b.trancheId);
+          const total = tranches.length;
+          const done = tranches.reduce((n, t) => n + (trancheDone(t) ? 1 : 0), 0);
+          const nextIdx = tranches.findIndex((t) => !trancheDone(t));
+          const pctBar = pctFromRatio(BigInt(k.distributedRewardAmount), BigInt(k.totalRewardAmount));
+
+          const sourceProgressText = `链上累计分发：${formatWeiMega(k.distributedRewardAmount)} / 总奖励 ${formatWeiMega(
+            k.totalRewardAmount
+          )} · Tranche ${done}/${total}`;
+
+          const milestoneItems = tranches
+            .map((t, idx) => {
+              const completed = trancheDone(t);
+              const st = statusUi(completed, idx, nextIdx === -1 ? -1 : nextIdx);
+              const rewardLabel = formatWeiMega(t.rewardAmount);
+              return `
+              <li class="milestone-item ${st.cls}">
+                <div class="milestone-top">
+                  <span class="milestone-name">Tranche ${idx + 1}/${total}</span>
+                  <span class="milestone-reward">达成奖励：${rewardLabel}</span>
+                </div>
+                <div class="milestone-desc">条件（官方）：${esc(t.goal || "—")}</div>
+                <span class="status ${st.cls}">${st.text}</span>
+              </li>
+            `;
+            })
+            .join("");
+
+          const drawerUrl = `https://flux.megaeth.com/kpis?drawer=kpi-detail&kpi-id=${kpiId}`;
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+          <td class="task-cell">
+            <strong>${esc(task)}</strong>
+            <span class="en">${esc(en)}</span>
+            <span class="source-progress">${esc(sourceProgressText)}</span>
+          </td>
+          <td>${formatWeiMega(k.totalRewardAmount)}</td>
+          <td>
+            <div class="progress">
+              <div class="bar"><i style="width:${Math.min(100, Math.max(0, pctBar)).toFixed(2)}%"></i></div>
+              <div><strong>${done}/${total}</strong> <span class="muted">(${pctBar.toFixed(2)}%)</span></div>
+            </div>
+          </td>
+          <td>
+            <span class="tag">${esc(track)}</span>
+            <div class="detail-main">${esc(detail)}</div>
+            <div class="detail-sub">
+              官方详情：
+              <a href="${drawerUrl}" target="_blank" rel="noopener">KPI #${String(kpiId).padStart(3, "0")}</a>
+              ·
+              <a href="${sourceUrl}" target="_blank" rel="noopener">Data Source</a>
+            </div>
+            <details class="milestone">
+              <summary>展开里程碑任务与奖励</summary>
+              <ul class="milestone-list">${milestoneItems}</ul>
+            </details>
+          </td>
+        `;
+          tbody.appendChild(tr);
+        }
+
+        if (maxUpdated > 0) {
+          const when = new Date(maxUpdated * 1000).toISOString().slice(0, 19).replace("T", " ");
+          const foot = document.createElement("p");
+          foot.className = "meta";
+          foot.style.marginTop = "10px";
+          foot.textContent = `接口 updatedAt 最大：${when} UTC（数据来源：${via}）`;
+          tbody.closest(".card")?.appendChild(foot);
+        }
+      }
+
+      (async () => {
+        const got = await fetchKpiPayload();
+        if (!got) {
+          renderError("无法加载 KPI：请确认可访问 Flux 接口，或将 <code>kpi-details.json</code> 放在与本页同目录。");
+          return;
+        }
+        renderTable(got.json.data.list, got.via);
+      })();
+    </script>
+  </body>
+</html>
