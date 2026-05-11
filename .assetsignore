@@ -1,0 +1,4 @@
+# Wrangler static assets：不上传到边缘（与 .gitignore 语法类似）
+.git/
+.wrangler/
+node_modules/
